@@ -1,2 +1,2 @@
-ampy -p COM4 put C:\Users\User\Desktop\EE3\Embedded\main.py
+ampy -p COM4 put main.py
 putty.exe -serial COM4
