@@ -110,7 +110,7 @@ if client == None:
 
 else:
     while 1:
-        for i in range(10):
+        for i in range(100):
             [prox, amb] = getproxandamb()
             # measure temp,humidity data
             [humd, temp] = gethumdandtemp()
@@ -122,5 +122,5 @@ else:
         jsonstr = '{"Proximity":' + str(prox) + ',"Ambient Light":' + str(amb) + ',"Humidity":' + str(
             humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
 
-        json = ujson.loads(jsonstr)
-        client.publish("PNL",bytes(json))
+        print(jsonstr)
+        client.publish("PNL",jsonstr)
