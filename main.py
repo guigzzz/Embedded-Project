@@ -68,11 +68,11 @@ def getproxandamb():
 
 def gethumdandtemp():
     i2c.writeto(SLAVEADDRTEMP, HUMD)
-    time.sleep(0.1)
+    time.sleep(0.05)
     humd = i2c.readfrom(SLAVEADDRTEMP, 2)
-    time.sleep(0.1)
+    time.sleep(0.05)
     i2c.writeto(SLAVEADDRTEMP, TEMP)
-    time.sleep(0.1)
+    time.sleep(0.05)
     temp = i2c.readfrom(SLAVEADDRTEMP, 2)
 
     humd = (125 * convert(humd)) / 65536 - 6
@@ -110,7 +110,7 @@ if client == None:
 
 else:
     while 1:
-        for i in range(5):
+        for i in range(10):
             [prox, amb] = getproxandamb()
             # measure temp,humidity data
             [humd, temp] = gethumdandtemp()
@@ -124,5 +124,3 @@ else:
 
         json = ujson.loads(jsonstr)
         client.publish("PNL",bytes(json))
-
-        time.sleep(2)
