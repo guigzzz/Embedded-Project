@@ -10,7 +10,7 @@ import network
 
 wlan = network.WLAN(network.STA_IF)
 wlan.connect("EEERover","exhibition")
-while !wlan.isconnected():
+while not wlan.isconnected():
 	time.sleep(1)
 
 client = MQTTClient(machine.unique_id(),"192.168.0.10")
