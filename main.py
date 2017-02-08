@@ -61,7 +61,8 @@ def dutycycle_monitor(target, light_sense, led_duty):
 		led_duty -= 50
 	return led_duty
 	
-	
+
+#main loop
 while 1:
 	#measure prox,amb data
 	[prox,amb] = getproxandamb()
