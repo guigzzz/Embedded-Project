@@ -85,9 +85,9 @@ def gethumdandtemp():
 
 def dutycycle_monitor(target, light_sense, led_duty):
     if (light_sense < target) & (led_duty < 1024):
-        led_duty += 50
+        led_duty += 25
     elif (light_sense > target) & (led_duty > 0):
-        led_duty -= 50
+        led_duty -= 25
     return led_duty
 
 
@@ -110,18 +110,19 @@ if client == None:
 
 else:
     while 1:
-        [prox, amb] = getproxandamb()
-        # measure temp,humidity data
-        [humd, temp] = gethumdandtemp()
+        for i in range(5):
+            [prox, amb] = getproxandamb()
+            # measure temp,humidity data
+            [humd, temp] = gethumdandtemp()
 
-        # measures and sets required duty cycle
-        led_duty = dutycycle_monitor(target, amb, led_duty)
-        pwm12.duty(led_duty)
+            # measures and sets required duty cycle
+            led_duty = dutycycle_monitor(target, amb, led_duty)
+            pwm12.duty(led_duty)
 
         jsonstr = '{"Proximity":' + str(prox) + ',"Ambient Light":' + str(amb) + ',"Humidity":' + str(
-            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty)
+            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
 
         json = ujson.loads(jsonstr)
-		client.publish("PNL",bytes(json))
+        client.publish("PNL",bytes(json))
 
-		time.sleep(2)
+        time.sleep(2)
