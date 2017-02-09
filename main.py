@@ -35,6 +35,7 @@ pwm12.duty(0)
 
 target = 1900
 led_duty = 0
+day_time = true
 
 
 def connect_to_broker():
@@ -49,9 +50,9 @@ def connect_to_broker():
         client = MQTTClient(machine.unique_id(), "192.168.0.10")
         client.connect()
         print("broker network found and connected")
-        time = client.subscribe("esys\time")
+        time = client.subscribe("esys\\time")
         print("subscribed to broker")
-        c.set_callback(sub_cb)
+        time.set_callback(sub_cb)
         return client, time
 
 
@@ -59,11 +60,12 @@ def connect_to_broker():
     print("broker network not found")
     return None
 
-def sub_cb(topic, msg, day_time):
+def sub_cb(topic, msg):
+	print("callbacked")
 	msg = ujson.loads(msg)
 	timestr = msg["time"]
 	hour = int(timestr[11:12]) + int(timestr[20:21]);
-	if hour<4 & hour>23:
+	if hour<4 & hour>23
 		day_time = false
 
 
@@ -104,6 +106,7 @@ def dutycycle_monitor(target, light_sense, led_duty):
 
 
 client, time = connect_to_broker()
+
 # main loop
 if client == None:
     while 1:
@@ -122,8 +125,7 @@ if client == None:
 
 else:
     while 1:
-    	client.wait_msg()
-    	while day_time = true:
+    	if day_time == true:
 	        for i in range(100):
 	            [prox, amb] = getproxandamb()
 	            # measure temp,humidity data
@@ -138,4 +140,10 @@ else:
 
 	        print(jsonstr)
         	client.publish("esys\PNL",jsonstr)
-        
+        else:
+        	for i in range(100):
+        		[humd, temp] = gethumdandtemp()
+        		
+        	jsonstr = '{"Humidity":' + str(humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
+        	print(jsonstr)
+        	client.publish("esys\PNL",jsonstr)
