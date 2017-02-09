@@ -50,10 +50,22 @@ def connect_to_broker():
         client = MQTTClient(machine.unique_id(), "192.168.0.10")
         client.connect()
         print("broker network found and connected")
-        return client
+        time = client.subscribe("esys\time")
+        print("subscribed to broker")
+        c.set_callback(sub_cb)
+        return client, time
+
+
 
     print("broker network not found")
     return None
+
+def sub_cb(topic, msg, day_time):
+	msg = ujson.loads(msg)
+	timestr = msg["time"]
+	hour = int(timestr[11:12]) + int(timestr[20:21]);
+	if hour<4 & hour>23:
+		day_time = false
 
 
 def convert(bytes):
@@ -98,7 +110,7 @@ def dutycycle_monitor(target, light_sense, led_duty):
     return led_duty
 
 
-client = connect_to_broker()
+client, time = connect_to_broker()
 # main loop
 if client == None:
     while 1:
@@ -117,17 +129,20 @@ if client == None:
 
 else:
     while 1:
-        for i in range(100):
-            [prox, amb] = getproxandamb()
-            # measure temp,humidity data
-            [humd, temp] = gethumdandtemp()
+    	client.wait_msg()
+    	while day_time = true:
+	        for i in range(100):
+	            [prox, amb] = getproxandamb()
+	            # measure temp,humidity data
+	            [humd, temp] = gethumdandtemp()
 
-            # measures and sets required duty cycle
-            led_duty = dutycycle_monitor(target, amb, led_duty)
-            pwm12.duty(led_duty)
+	            # measures and sets required duty cycle
+	            led_duty = dutycycle_monitor(target, amb, led_duty)
+	            pwm12.duty(led_duty)
 
-        jsonstr = '{"Proximity":' + str(prox) + ',"Ambient Light":' + str(amb) + ',"Humidity":' + str(
-            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
+	        jsonstr = '{"Proximity":' + str(prox) + ',"Ambient Light":' + str(amb) + ',"Humidity":' + str(
+	            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
 
-        print(jsonstr)
-        client.publish("PNL",jsonstr)
+	        print(jsonstr)
+        	client.publish("esys\PNL",jsonstr)
+        
