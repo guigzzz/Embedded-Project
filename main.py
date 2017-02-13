@@ -94,7 +94,7 @@ def dutycycle_monitor(target, light_sense, led_duty):
     if (light_sense < target) & (led_duty < 1024-step):
         led_duty += step
     elif (light_sense > target) & (led_duty > step):
-        	led_duty -= step
+        led_duty -= step
     return led_duty
 
 
