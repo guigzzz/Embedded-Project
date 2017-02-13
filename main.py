@@ -34,9 +34,9 @@ pwm12 = machine.PWM(p12)
 pwm12.freq(500)
 pwm12.duty(0)
 
-target = 1900
+global target = 1900
 led_duty = 0
-day_time = True
+global day_time = True
 
 
 def connect_to_broker():
@@ -71,6 +71,8 @@ def sub_cb(topic, msg):
 		hour = int(timestr[11:12]) + int(timestr[20:21]);
 		if (hour<4 or hour>23):
 			day_time = False
+        else:
+            day_time = True
 	elif topic == "esys/PNL/config":
 		msg = ujson.loads(msg)
 		target = msg["target"]
