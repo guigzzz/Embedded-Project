@@ -111,8 +111,8 @@ if client == None:
         led_duty = dutycycle_monitor(target, amb, led_duty)
         pwm12.duty(led_duty)
 
-        print('proximity: %d, ambient light: %d, humidity: %d %%, temperature: %d C, duty cycle: %d ' %
-              (prox, amb, humd, temp, led_duty))
+        print('{"Proximity":' + str(prox) + ',"Ambient Light":' + str(amb) + ',"Humidity":' + str(
+            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}')
 
 
 else:
