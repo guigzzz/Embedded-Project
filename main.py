@@ -53,16 +53,11 @@ def connect_to_broker():
 		client.connect()
 		print("broker network found and connected")
 		client.set_callback(sub_cb)
-<<<<<<< Updated upstream
 		client.subscribe("esys\\time")
 		client.subscribe("esys\\PNL\\config")
+		
 		print("subscribed to broker")
 		return client
-=======
-		time_cl = client.subscribe("esys\\time")
-		print("subscribed to broker")
-		return client, time_cl
->>>>>>> Stashed changes
 
 	print("broker network not found")
 	return None
@@ -118,11 +113,8 @@ def dutycycle_monitor(target, light_sense, led_duty):
     return led_duty
 
 
-<<<<<<< Updated upstream
+
 client = connect_to_broker()
-=======
-client, time_cl = connect_to_broker()
->>>>>>> Stashed changes
 
 # main loop
 if client == None:

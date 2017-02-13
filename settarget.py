@@ -12,12 +12,8 @@ target = input("input target light value:\n")
 
 while target!="0":
 	jsonstr = '{"target":' + str(target) + '}'
-<<<<<<< Updated upstream
+
 	client.publish("esys\\PNL\\config",jsonstr)
-=======
-	client.publish("esys\\PNL\\config",target)
-	#print(jsonstr)
-	time.sleep(1)
->>>>>>> Stashed changes
+
 	target = input("input target light value\n")
 
