@@ -40,26 +40,26 @@ day_time = True
 
 
 def connect_to_broker():
-    wlan = network.WLAN(network.STA_IF)
-    nets = [net[0] for net in wlan.scan()]
+	print("attempting to connect to broker network...")
+	wlan = network.WLAN(network.STA_IF)
+	nets = [net[0] for net in wlan.scan()]
 
-    if b'EEERover' in nets:
-        wlan.connect("EEERover", "exhibition")
-        while not wlan.isconnected():
-            time.sleep(0.5)
+	if b'EEERover' in nets:
+		wlan.connect("EEERover", "exhibition")
+		while not wlan.isconnected():
+		    pass
 
-        client = MQTTClient(machine.unique_id(), "192.168.0.10")
-        client.connect()
-        print("broker network found and connected")
-        time = client.subscribe("esys\\time")
-        print("subscribed to broker")
-        time.set_callback(sub_cb)
-        return client, time
+		client = MQTTClient(machine.unique_id(), "192.168.0.10")
+		client.connect()
+		print("broker network found and connected")
+		client.set_callback(sub_cb)
+		client.subscribe("esys\\time")
+		client.subscribe("esys\\PNL\\config")
+		print("subscribed to broker")
+		return client
 
-
-
-    print("broker network not found")
-    return None
+	print("broker network not found")
+	return None
 
 def sub_cb(topic, msg):
 	print("callbacked")
@@ -112,7 +112,7 @@ def dutycycle_monitor(target, light_sense, led_duty):
     return led_duty
 
 
-client, time = connect_to_broker()
+client = connect_to_broker()
 
 # main loop
 if client == None:
@@ -146,11 +146,11 @@ else:
 	            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
 
 	        print(jsonstr)
-        	client.publish("esys\PNL",jsonstr)
+        	client.publish("esys\\PNL",jsonstr)
         else:
         	for i in range(100):
         		[humd, temp] = gethumdandtemp()
         		
         	jsonstr = '{"Humidity":' + str(humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
         	print(jsonstr)
-        	client.publish("esys\PNL",jsonstr)
+        	client.publish("esys\\PNL",jsonstr)
