@@ -36,7 +36,7 @@ pwm12.duty(0)
 
 target = 1900
 led_duty = 0
-day_time = true
+day_time = True
 
 
 def connect_to_broker():
@@ -66,8 +66,8 @@ def sub_cb(topic, msg):
 	msg = ujson.loads(msg)
 	timestr = msg["time"]
 	hour = int(timestr[11:12]) + int(timestr[20:21]);
-	if hour<4 & hour>23
-		day_time = false
+	if (hour<4 or hour>23):
+		day_time = False
 
 
 def convert(bytes):
@@ -132,7 +132,7 @@ if client == None:
 
 else:
     while 1:
-    	if day_time == true:
+    	if day_time == True:
 	        for i in range(100):
 	            [prox, amb] = getproxandamb()
 	            # measure temp,humidity data
