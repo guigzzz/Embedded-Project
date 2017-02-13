@@ -34,9 +34,10 @@ pwm12 = machine.PWM(p12)
 pwm12.freq(500)
 pwm12.duty(0)
 
-global target = 1900
+
 led_duty = 0
-global day_time = True
+target = 1900
+day_time = True
 
 
 def connect_to_broker():
@@ -63,6 +64,10 @@ def connect_to_broker():
 	return None
 
 def sub_cb(topic, msg):
+	global target,day_time
+	print("handling callback:")
+	print(topic)
+	print(msg)
 	topic = str(topic,'utf-8')
 	msg = str(msg,'utf-8')
 	if topic == "esys/time":
@@ -70,12 +75,13 @@ def sub_cb(topic, msg):
 		timestr = msg["date"]
 		hour = int(timestr[11:12]) + int(timestr[20:21]);
 		if (hour<4 or hour>23):
-			day_time = False
-        else:
-            day_time = True
+			day_time = True
+		else:
+			day_time = True
 	elif topic == "esys/PNL/config":
 		msg = ujson.loads(msg)
 		target = msg["target"]
+		#print(target)
 
 
 def convert(bytes):
@@ -150,22 +156,29 @@ else:
 	            # measures and sets required duty cycle
 	            led_duty = dutycycle_monitor(target, amb, led_duty)
 	            pwm12.duty(led_duty)
+	            #if i%20==0:
+	            	#client.connect()
+	            client.check_msg()
+	            	#client.disconnect()
 
 	        jsonstr = '{"Proximity":' + str(prox) + ',"Ambient Light":' + str(amb) + ',"Humidity":' + str(
 	            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
 
 	        print(jsonstr)
 	        print(target)
-	        client.connect()
+	        #client.connect()
         	client.publish("esys/PNL",jsonstr)
-        	client.check_msg()
-        	client.disconnect()
+        	#client.disconnect()
         else:
         	for i in range(100):
         		[humd, temp] = gethumdandtemp()
+        		#if i%20==0:
+        			#client.connect()
+        		client.check_msg()
+        			#client.disconnect()
         		
         	jsonstr = '{"Humidity":' + str(humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
         	print(jsonstr)
-        	client.connect()
+        	#client.connect()
         	client.publish("esys/PNL",jsonstr)
-        	client.disconnect()
+        	#client.disconnect()
