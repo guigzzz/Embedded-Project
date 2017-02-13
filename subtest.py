@@ -2,10 +2,13 @@ import network
 from umqtt.simple import MQTTClient
 import time
 import machine
-
+import ustruct as struct
 
 
 def sub_cb(topic,msg):
+	topic = str(topic,'utf-8')
+	msg = str(msg,'utf-8')
+	#if topic == 
 	print((topic,msg))		
 	
 wlan = network.WLAN(network.STA_IF)
@@ -19,8 +22,8 @@ if b'EEERover' in nets:
 	client.connect()
 	print("broker network found and connected")
 	client.set_callback(sub_cb)
-	client.subscribe("esys\\PNL\\config")
-	client.subscribe("esys\\time")
+	client.subscribe("esys/PNL/config")
+	client.subscribe("esys/time")
 	
 while 1:
 	client.check_msg()

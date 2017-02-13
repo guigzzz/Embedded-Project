@@ -53,8 +53,8 @@ def connect_to_broker():
 		client.connect()
 		print("broker network found and connected")
 		client.set_callback(sub_cb)
-		client.subscribe("esys\\time")
-		client.subscribe("esys\\PNL\\config")
+		client.subscribe("esys/time")
+		client.subscribe("esys/PNL/config")
 		
 		print("subscribed to broker")
 		return client
@@ -63,12 +63,17 @@ def connect_to_broker():
 	return None
 
 def sub_cb(topic, msg):
-	print("callbacked")
-	msg = ujson.loads(msg)
-	timestr = msg["time"]
-	hour = int(timestr[11:12]) + int(timestr[20:21]);
-	if (hour<4 or hour>23):
-		day_time = False
+	topic = str(topic,'utf-8')
+	msg = str(msg,'utf-8')
+	if topic == "esys/time":
+		msg = ujson.loads(msg)
+		timestr = msg["date"]
+		hour = int(timestr[11:12]) + int(timestr[20:21]);
+		if (hour<4 or hour>23):
+			day_time = False
+	elif topic == "esys/PNL/config":
+		msg = ujson.loads(msg)
+		target = msg["target"]
 
 
 def convert(bytes):
@@ -148,11 +153,17 @@ else:
 	            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
 
 	        print(jsonstr)
-        	client.publish("esys\\PNL",jsonstr)
+	        print(target)
+	        client.connect()
+        	client.publish("esys/PNL",jsonstr)
+        	client.check_msg()
+        	client.disconnect()
         else:
         	for i in range(100):
         		[humd, temp] = gethumdandtemp()
         		
         	jsonstr = '{"Humidity":' + str(humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
         	print(jsonstr)
-        	client.publish("esys\\PNL",jsonstr)
+        	client.connect()
+        	client.publish("esys/PNL",jsonstr)
+        	client.disconnect()
