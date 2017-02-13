@@ -48,8 +48,8 @@ def connect_to_broker():
             time.sleep(0.5)
 
         client = MQTTClient(machine.unique_id(), "192.168.0.10")
-        client.connect()
-        print("broker network found and connected")
+        #client.connect()
+        print("broker wifi found and connected")
         return client
 
     print("broker network not found")
@@ -130,4 +130,6 @@ else:
             humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
 
         print(jsonstr)
-        client.publish("PNL",jsonstr)
+        client.connect()
+        client.publish("esys\\PNL",jsonstr)
+        client.disconnect()
