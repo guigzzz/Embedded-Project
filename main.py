@@ -4,6 +4,7 @@ import time
 import network
 from umqtt.simple import MQTTClient
 import ujson
+import math
 
 COMMAND = 0x80
 PROXIMITYRATE = 0x82
@@ -80,14 +81,20 @@ def gethumdandtemp():
 
     return [humd, temp]
 
+def step_size(target, light_sense):
+	step = ((target-light_sense)/16383)*800
+	step = math.floor(step)
+	return int(math.fabs(step))
+
 # feedback control system regulating the LED's dutycycle
 
 
 def dutycycle_monitor(target, light_sense, led_duty):
-    if (light_sense < target) & (led_duty < 1024):
-        led_duty += 25
-    elif (light_sense > target) & (led_duty > 0):
-        led_duty -= 25
+    step = step_size(target, light_sense)
+    if (light_sense < target) & (led_duty < 1024-step):
+        led_duty += step
+    elif (light_sense > target) & (led_duty > step):
+        	led_duty -= step
     return led_duty
 
 
