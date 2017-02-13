@@ -36,38 +36,39 @@ pwm12.duty(0)
 
 target = 1900
 led_duty = 0
-day_time = true
+day_time = True
 
 
 def connect_to_broker():
-    wlan = network.WLAN(network.STA_IF)
-    nets = [net[0] for net in wlan.scan()]
+	print("attempting to connect to broker network...")
+	wlan = network.WLAN(network.STA_IF)
+	nets = [net[0] for net in wlan.scan()]
 
-    if b'EEERover' in nets:
-        wlan.connect("EEERover", "exhibition")
-        while not wlan.isconnected():
-            time.sleep(0.5)
+	if b'EEERover' in nets:
+		wlan.connect("EEERover", "exhibition")
+		while not wlan.isconnected():
+		    pass
 
-        client = MQTTClient(machine.unique_id(), "192.168.0.10")
-        client.connect()
-        print("broker network found and connected")
-        time = client.subscribe("esys\\time")
-        print("subscribed to broker")
-        time.set_callback(sub_cb)
-        return client, time
+		client = MQTTClient(machine.unique_id(), "192.168.0.10")
+		client.connect()
+		print("broker network found and connected")
+		client.set_callback(sub_cb)
+		client.subscribe("esys\\time")
+		client.subscribe("esys\\PNL\\config")
+		
+		print("subscribed to broker")
+		return client
 
-
-
-    print("broker network not found")
-    return None
+	print("broker network not found")
+	return None
 
 def sub_cb(topic, msg):
 	print("callbacked")
 	msg = ujson.loads(msg)
 	timestr = msg["time"]
 	hour = int(timestr[11:12]) + int(timestr[20:21]);
-	if hour<4 & hour>23
-		day_time = false
+	if (hour<4 or hour>23):
+		day_time = False
 
 
 def convert(bytes):
@@ -108,11 +109,12 @@ def dutycycle_monitor(target, light_sense, led_duty):
     if (light_sense < target) & (led_duty < 1024-step):
         led_duty += step
     elif (light_sense > target) & (led_duty > step):
-        	led_duty -= step
+        led_duty -= step
     return led_duty
 
 
-client, time = connect_to_broker()
+
+client = connect_to_broker()
 
 # main loop
 if client == None:
@@ -126,13 +128,13 @@ if client == None:
         led_duty = dutycycle_monitor(target, amb, led_duty)
         pwm12.duty(led_duty)
 
-        print('proximity: %d, ambient light: %d, humidity: %d %%, temperature: %d C, duty cycle: %d ' %
-              (prox, amb, humd, temp, led_duty))
+        print('{"Proximity":' + str(prox) + ',"Ambient Light":' + str(amb) + ',"Humidity":' + str(
+            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}')
 
 
 else:
     while 1:
-    	if day_time == true:
+    	if day_time == True:
 	        for i in range(100):
 	            [prox, amb] = getproxandamb()
 	            # measure temp,humidity data
@@ -146,11 +148,11 @@ else:
 	            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
 
 	        print(jsonstr)
-        	client.publish("esys\PNL",jsonstr)
+        	client.publish("esys\\PNL",jsonstr)
         else:
         	for i in range(100):
         		[humd, temp] = gethumdandtemp()
         		
         	jsonstr = '{"Humidity":' + str(humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
         	print(jsonstr)
-        	client.publish("esys\PNL",jsonstr)
+        	client.publish("esys\\PNL",jsonstr)

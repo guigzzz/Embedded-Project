@@ -12,8 +12,8 @@ target = input("input target light value:\n")
 
 while target!="0":
 	jsonstr = '{"target":' + str(target) + '}'
-	client.publish("esys/PNL/config",target)
-	#print(jsonstr)
-	time.sleep(1)
+
+	client.publish("esys\\PNL\\config",jsonstr)
+
 	target = input("input target light value\n")
 
