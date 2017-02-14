@@ -132,13 +132,13 @@ def dutycycle_monitor(target, light_sense, led_duty):
     return led_duty
 
 
-# setup connection and subscribtion
+# setup connection and subscription
 client = connect_to_broker()
 
 # main loop
 if client == None:
     while 1:
-        # measure prox,amb data
+        # measure ambient light intensity
         amb = getamb()
         # measure temp,humidity data
         [humd, temp] = gethumdandtemp()
@@ -150,10 +150,9 @@ if client == None:
         print('{"Ambient Light":' + str(amb) + ',"Humidity":' + str(
             humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}')
 
-
 else:
     while 1:
-    	if day_time == True:
+    	if day_time == True: #day-time
 	        for i in range(100):
 	            amb = getproxandamb()
 	            # measure temp,humidity data
@@ -162,31 +161,24 @@ else:
 	            # measures and sets required duty cycle
 	            led_duty = dutycycle_monitor(target, amb, led_duty)
 	            pwm12.duty(led_duty)
-	            #if i%20==0:
-	            	#client.connect()
-	            client.check_msg()
-	            	#client.disconnect()
+	           
+	            client.check_msg() #check if time topic or config topic has new message
 
 	        jsonstr = '{"Ambient Light":' + str(amb) + ',"Humidity":' + str(
-	            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
+	            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}' #build json
 
 	        print(jsonstr)
 	        print(target)
-	        #client.connect()
-        	client.publish("esys/PNL",jsonstr)
-        	#client.disconnect()
-        else:
+        	client.publish("esys/PNL",jsonstr) #publish json to group topic
+        	
+        else: #night-time
+        
         	for i in range(100):
-        		[humd, temp] = gethumdandtemp()
-        		#if i%20==0:
-        			#client.connect()
-        		client.check_msg()
-        			#client.disconnect()
+        		[humd, temp] = gethumdandtemp() #get humidity and temperature, LED duty cycle is constant
+        		client.check_msg() #check for time and configuration (for light intensity target) update
         		
-        	jsonstr = '{"Humidity":' + str(humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
+        	jsonstr = '{"Humidity":' + str(humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}' #build json
         	print(jsonstr)
-        	#client.connect()
-        	client.publish("esys/PNL",jsonstr)
-        	#client.disconnect()
+        	client.publish("esys/PNL",jsonstr) #publish json to group topic
 
 # end main
