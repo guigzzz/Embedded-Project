@@ -17,7 +17,7 @@ SLAVEADDRTEMP = 64
 HUMD = b'\xF5'
 TEMP = b'\xF3'
 
-# disable API
+# disable board hotspot
 ap_if = network.WLAN(network.AP_IF)
 ap_if.active(False)
 
@@ -90,17 +90,17 @@ def sub_cb(topic, msg):
 		target = msg["target"]									# set target according to msg
 		#print(target)
 
-
+# convert incoming byte array from i2c bus 
 def convert(bytes):
     (bytes,) = struct.unpack('>h', bytes)
     return bytes
 
-
+# read and return light sensing data
 def getamb():
     amb = i2c.readfrom_mem(SLAVEADDRPROX, LIGHTSENSORDATA, 2)
-    return convert(amb)
+    return convert(amb)					# convert to lux
 
-
+# read and return humidity/temperature sensing data
 def gethumdandtemp():
     i2c.writeto(SLAVEADDRTEMP, HUMD)
     time.sleep(0.05)
@@ -110,19 +110,19 @@ def gethumdandtemp():
     time.sleep(0.05)
     temp = i2c.readfrom(SLAVEADDRTEMP, 2)
 
-    humd = (125 * convert(humd)) / 65536 - 6
-    temp = (175.72 * convert(temp)) / 65536 - 46.85
+    humd = (125 * convert(humd)) / 65536 - 6			# convert to percentages (%)
+    temp = (175.72 * convert(temp)) / 65536 - 46.85		# convert to degrees (C)
 
     return [humd, temp]
 
+# variable duty_cycle increase/decrease step size to improve system's reactivity
 def step_size(target, light_sense):
-	step = ((target-light_sense)/16383)*800
+	step = ((target-light_sense)/16383)*800		# evaluate, normalise and scale target vs. sensing difference
 	step = math.floor(step)
-	return int(math.fabs(step))
+	return int(math.fabs(step))					# return step tailored step size
+
 
 # feedback control system regulating the LED's dutycycle
-
-
 def dutycycle_monitor(target, light_sense, led_duty):
     step = step_size(target, light_sense)
     if (light_sense < target) & (led_duty < 1024-step):
@@ -132,7 +132,7 @@ def dutycycle_monitor(target, light_sense, led_duty):
     return led_duty
 
 
-
+# setup connection and subscribtion
 client = connect_to_broker()
 
 # main loop
@@ -188,3 +188,5 @@ else:
         	#client.connect()
         	client.publish("esys/PNL",jsonstr)
         	#client.disconnect()
+
+# end main
