@@ -6,6 +6,7 @@ from umqtt.simple import MQTTClient
 import ujson
 import math
 
+# assign register adresses for I2C connections
 COMMAND = 0x80
 PROXIMITYRATE = 0x82
 LIGHTSENSORRATE = 0x84
@@ -16,35 +17,41 @@ SLAVEADDRTEMP = 64
 HUMD = b'\xF5'
 TEMP = b'\xF3'
 
+# disable API
 ap_if = network.WLAN(network.AP_IF)
 ap_if.active(False)
 
+# assign connection parameters of I2C
 i2c = machine.I2C(machine.Pin(5), machine.Pin(4))
 # enable periodic prox measurement
 i2c.writeto_mem(SLAVEADDRPROX, COMMAND, b'\x07')
 time.sleep(0.1)
-# set prox measurement rate to 7sample/sec
+# set light measurement rate to 7sample/sec
 i2c.writeto_mem(SLAVEADDRPROX, PROXIMITYRATE, b'\x02')
 time.sleep(0.1)
 i2c.writeto_mem(SLAVEADDRPROX, LIGHTSENSORRATE, b'\x07')
 time.sleep(0.1)
 
+
+# set p12 to PWM output
 p12 = machine.Pin(12)
 pwm12 = machine.PWM(p12)
-pwm12.freq(500)
-pwm12.duty(0)
+pwm12.freq(500)		# initialise frequency
+pwm12.duty(0)		# initialise duty cycle
 
 
 led_duty = 0
-target = 1900
-day_time = True
+target = 1900		# initialise light inensity target
+day_time = True     # initialise day/night bool
 
-
+# establish MQTT connection and subscribing to topics
 def connect_to_broker():
+	# scan for all available networks
 	print("attempting to connect to broker network...")
 	wlan = network.WLAN(network.STA_IF)
 	nets = [net[0] for net in wlan.scan()]
 
+	# connect to EEERover
 	if b'EEERover' in nets:
 		wlan.connect("EEERover", "exhibition")
 		while not wlan.isconnected():
@@ -53,9 +60,9 @@ def connect_to_broker():
 		client = MQTTClient(machine.unique_id(), "192.168.0.10")
 		client.connect()
 		print("broker network found and connected")
-		client.set_callback(sub_cb)
-		client.subscribe("esys/time")
-		client.subscribe("esys/PNL/config")
+		client.set_callback(sub_cb)					# set callback function to process msg from MQTT
+		client.subscribe("esys/time")				# subscribe to time topic
+		client.subscribe("esys/PNL/config")			# subscribe to user configuration topic
 		
 		print("subscribed to broker")
 		return client
@@ -64,23 +71,23 @@ def connect_to_broker():
 	return None
 
 def sub_cb(topic, msg):
-	global target,day_time
+	global target,day_time			# one variable declared by topic
 	print("handling callback:")
 	print(topic)
 	print(msg)
-	topic = str(topic,'utf-8')
-	msg = str(msg,'utf-8')
-	if topic == "esys/time":
+	topic = str(topic,'utf-8')		# decode topic from MQTT
+	msg = str(msg,'utf-8')			# decode msg from MQTT
+	if topic == "esys/time":								# TIME TOPIC
 		msg = ujson.loads(msg)
-		timestr = msg["date"]
-		hour = int(timestr[11:12]) + int(timestr[20:21]);
-		if (hour<4 or hour>23):
+		timestr = msg["date"]	
+		hour = int(timestr[11:12]) + int(timestr[20:21]);		# decode hourly time
+		if (hour<4 or hour>23):									# sleep mode between 11:00pm and 4:00am
 			day_time = True
 		else:
 			day_time = True
-	elif topic == "esys/PNL/config":
+	elif topic == "esys/PNL/config":						# CONFIG TOPIC
 		msg = ujson.loads(msg)
-		target = msg["target"]
+		target = msg["target"]									# set target according to msg
 		#print(target)
 
 
