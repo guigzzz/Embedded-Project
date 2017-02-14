@@ -89,10 +89,9 @@ def convert(bytes):
     return bytes
 
 
-def getproxandamb():
-    prox = i2c.readfrom_mem(SLAVEADDRPROX, PROXIMITYDATA, 2)
+def getamb():
     amb = i2c.readfrom_mem(SLAVEADDRPROX, LIGHTSENSORDATA, 2)
-    return [convert(prox), convert(amb)]
+    return convert(amb)
 
 
 def gethumdandtemp():
@@ -133,7 +132,7 @@ client = connect_to_broker()
 if client == None:
     while 1:
         # measure prox,amb data
-        [prox, amb] = getproxandamb()
+        amb = getamb()
         # measure temp,humidity data
         [humd, temp] = gethumdandtemp()
 
@@ -141,7 +140,7 @@ if client == None:
         led_duty = dutycycle_monitor(target, amb, led_duty)
         pwm12.duty(led_duty)
 
-        print('{"Proximity":' + str(prox) + ',"Ambient Light":' + str(amb) + ',"Humidity":' + str(
+        print('{"Ambient Light":' + str(amb) + ',"Humidity":' + str(
             humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}')
 
 
@@ -149,7 +148,7 @@ else:
     while 1:
     	if day_time == True:
 	        for i in range(100):
-	            [prox, amb] = getproxandamb()
+	            amb = getproxandamb()
 	            # measure temp,humidity data
 	            [humd, temp] = gethumdandtemp()
 
@@ -161,7 +160,7 @@ else:
 	            client.check_msg()
 	            	#client.disconnect()
 
-	        jsonstr = '{"Proximity":' + str(prox) + ',"Ambient Light":' + str(amb) + ',"Humidity":' + str(
+	        jsonstr = '{"Ambient Light":' + str(amb) + ',"Humidity":' + str(
 	            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}'
 
 	        print(jsonstr)
