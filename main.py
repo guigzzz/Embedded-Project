@@ -154,7 +154,7 @@ else:
     while 1:
     	if day_time == True: #day-time
 	        for i in range(100):
-	            amb = getproxandamb()
+	            amb = getamb()
 	            # measure temp,humidity data
 	            [humd, temp] = gethumdandtemp()
 
