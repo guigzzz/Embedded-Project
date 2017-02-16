@@ -5,8 +5,6 @@
 
 import paho.mqtt.client as mqtt  #import the client1
 import time
-
-import matplotlib.pyplot as plt
     
 def on_message(client1, userdata, message):
     print("message received  "  ,str(message.payload.decode("utf-8")))
