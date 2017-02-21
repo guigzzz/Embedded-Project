@@ -58,12 +58,12 @@ def connect_to_broker():
 		    pass
 
 		client = MQTTClient(machine.unique_id(), "192.168.0.10")
-		client.connect()
+		#client.connect()
 		print("broker network found and connected")
 		client.set_callback(sub_cb)					# set callback function to process msg from MQTT
+		client.connect()
 		client.subscribe("esys/time")				# subscribe to time topic
 		client.subscribe("esys/PNL/config")			# subscribe to user configuration topic
-		
 		print("subscribed to broker")
 		return client
 
@@ -72,17 +72,16 @@ def connect_to_broker():
 
 def sub_cb(topic, msg):
 	global target,day_time			# one variable declared by topic
-	print("handling callback:")
-	print(topic)
-	print(msg)
 	topic = str(topic,'utf-8')		# decode topic from MQTT
-	msg = str(msg,'utf-8')			# decode msg from MQTT
+	msg = str(msg,'utf-8')		# decode msg from MQTT
+	print("handling callback from " + topic)
+	print("contents: " + msg)
 	if topic == "esys/time":								# TIME TOPIC
 		msg = ujson.loads(msg)
 		timestr = msg["date"]	
-		hour = int(timestr[11:12]) + int(timestr[20:21]);		# decode hourly time
+		hour = int(timestr[11:13]) + int(timestr[20:22]);		# decode hourly time
 		if (hour<4 or hour>23):									# sleep mode between 11:00pm and 4:00am
-			day_time = True
+			day_time = False
 		else:
 			day_time = True
 	elif topic == "esys/PNL/config":						# CONFIG TOPIC
@@ -154,23 +153,24 @@ else:
     while 1:
     	if day_time == True: #day-time
 	        for i in range(100):
-	            amb = getamb()
-	            # measure temp,humidity data
-	            [humd, temp] = gethumdandtemp()
+				amb = getamb()
+				# measure temp,humidity data
+				[humd, temp] = gethumdandtemp()
 
-	            # measures and sets required duty cycle
-	            led_duty = dutycycle_monitor(target, amb, led_duty)
-	            pwm12.duty(led_duty)
-	           
-	            client.check_msg() #check if time topic or config topic has new message
+				# measures and sets required duty cycle
+				led_duty = dutycycle_monitor(target, amb, led_duty)
+				pwm12.duty(led_duty)
 
+				client.check_msg() #check if time topic or config topic has new message
+				
 	        jsonstr = '{"Ambient Light":' + str(amb) + ',"Humidity":' + str(
 	            humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}' #build json
 
 	        print(jsonstr)
 	        print(target)
+
         	client.publish("esys/PNL",jsonstr) #publish json to group topic
-        	
+
         else: #night-time
         
         	for i in range(100):
@@ -179,6 +179,7 @@ else:
         		
         	jsonstr = '{"Humidity":' + str(humd) + ',"Temperature":' + str(temp) + ',"Led Duty Cycle":' + str(led_duty) + '}' #build json
         	print(jsonstr)
+
         	client.publish("esys/PNL",jsonstr) #publish json to group topic
 
 # end main
